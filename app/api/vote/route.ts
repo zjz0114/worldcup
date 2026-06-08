@@ -81,7 +81,7 @@ export async function GET(request: NextRequest) {
       .sort((a: any, b: any) => b.votes - a.votes)
       .slice(0, 10);
 
-    const totalVotes = Object.values(data.votes).reduce((a: number, b: number) => a + b, 0);
+    const totalVotes = (Object.values(data.votes) as number[]).reduce((a: number, b: number) => a + b, 0);
 
     return NextResponse.json({
       success: true,
@@ -157,7 +157,7 @@ export async function POST(request: NextRequest) {
       .sort((a: any, b: any) => b.votes - a.votes)
       .slice(0, 10);
 
-    const totalVotes = Object.values(data.votes).reduce((a: number, b: number) => a + b, 0);
+    const totalVotes = (Object.values(data.votes) as number[]).reduce((a: number, b: number) => a + b, 0);
 
     return NextResponse.json({
       success: true,
