@@ -4,34 +4,62 @@ import path from "path";
 
 const DATA_FILE = path.join(process.cwd(), "data", "votes.json");
 
+// Teams data
+const TEAMS = [
+  { id: "brazil", name: "Brazil", flag: "🇧🇷" },
+  { id: "france", name: "France", flag: "🇫🇷" },
+  { id: "argentina", name: "Argentina", flag: "🇦🇷" },
+  { id: "england", name: "England", flag: "🏴󠁧󠁢󠁳󠁿󠁯" },
+  { id: "spain", name: "Spain", flag: "🇪🇸" },
+  { id: "germany", name: "Germany", flag: "🇩🇪" },
+  { id: "portugal", name: "Portugal", flag: "🇵🇹" },
+  { id: "netherlands", name: "Netherlands", flag: "🇳🇱" },
+  { id: "italy", name: "Italy", flag: "🇮🇹" },
+  { id: "belgium", name: "Belgium", flag: "🇧🇪" },
+  { id: "croatia", name: "Croatia", flag: "🇭🇷" },
+  { id: "uruguay", name: "Uruguay", flag: "🇺🇳" },
+  { id: "usa", name: "USA", flag: "🇺🇸" },
+  { id: "mexico", name: "Mexico", flag: "🇲🇱" },
+  { id: "japan", name: "Japan", flag: "🇯🇵" },
+  { id: "south_korea", name: "South Korea", flag: "🇰🇷" },
+];
+
+// In-memory storage (for Vercel production)
+let memoryStore: {
+  votes: Record<string, number>;
+  ips: Record<string, string>;
+  lastUpdated: string;
+} | null = null;
+
+// Helper function to get storage
+function getStorage() {
+  if (memoryStore) {
+    return memoryStore;
+  }
+  memoryStore = {
+    votes: {},
+    ips: {},
+    lastUpdated: new Date().toISOString(),
+  };
+  return memoryStore;
+}
+
 // Helper function to read votes data
 async function readVotesData() {
+  // Use memory storage in production (Vercel)
+  if (process.env.NODE_ENV === "production") {
+    return getStorage();
+  }
+
+  // Use file system in development
   try {
     const data = await fs.readFile(DATA_FILE, "utf-8");
     return JSON.parse(data);
   } catch (error) {
-    // If file doesn't exist, return initial structure
     return {
       votes: {},
       ips: {},
-      teams: [
-        { id: "brazil", name: "Brazil", flag: "🇧🇷" },
-        { id: "france", name: "France", flag: "🇫🇷" },
-        { id: "argentina", name: "Argentina", flag: "🇦🇷" },
-        { id: "england", name: "England", flag: "🏴󠁧󠁢󠁳󠁿󠁯" },
-        { id: "spain", name: "Spain", flag: "🇪🇸" },
-        { id: "germany", name: "Germany", flag: "🇩🇪" },
-        { id: "portugal", name: "Portugal", flag: "🇵🇹" },
-        { id: "netherlands", name: "Netherlands", flag: "🇳🇱" },
-        { id: "italy", name: "Italy", flag: "🇮🇹" },
-        { id: "belgium", name: "Belgium", flag: "🇧🇪" },
-        { id: "croatia", name: "Croatia", flag: "🇭🇷" },
-        { id: "uruguay", name: "Uruguay", flag: "🇺🇳" },
-        { id: "usa", name: "USA", flag: "🇺🇸" },
-        { id: "mexico", name: "Mexico", flag: "🇲🇱" },
-        { id: "japan", name: "Japan", flag: "🇯🇵" },
-        { id: "south_korea", name: "South Korea", flag: "🇰🇷" },
-      ],
+      teams: TEAMS,
       lastUpdated: new Date().toISOString(),
     };
   }
@@ -39,6 +67,13 @@ async function readVotesData() {
 
 // Helper function to write votes data
 async function writeVotesData(data: any) {
+  // Use memory storage in production (Vercel)
+  if (process.env.NODE_ENV === "production") {
+    memoryStore = data;
+    return;
+  }
+
+  // Use file system in development
   await fs.writeFile(DATA_FILE, JSON.stringify(data, null, 2), "utf-8");
 }
 
@@ -70,15 +105,15 @@ export async function GET(request: NextRequest) {
     const hasVoted = data.ips[clientIp];
 
     // Calculate rankings
-    const rankings = data.teams
-      .map((team: any) => ({
+    const rankings = TEAMS
+      .map((team) => ({
         ...team,
         votes: data.votes[team.id] || 0,
-        percentage: data.teams.length > 0
+        percentage: data.teams?.length > 0
           ? ((data.votes[team.id] || 0) / (Object.values(data.votes) as number[]).reduce((a: number, b: number) => a + b, 0) || 1) * 100
           : 0,
       }))
-      .sort((a: any, b: any) => b.votes - a.votes)
+      .sort((a, b) => b.votes - a.votes)
       .slice(0, 10);
 
     const totalVotes = (Object.values(data.votes) as number[]).reduce((a: number, b: number) => a + b, 0);
@@ -126,7 +161,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if team exists
-    const team = data.teams.find((t: any) => t.id === teamId);
+    const team = TEAMS.find((t) => t.id === teamId);
     if (!team) {
       return NextResponse.json(
         { success: false, error: "Invalid team" },
@@ -144,17 +179,17 @@ export async function POST(request: NextRequest) {
     data.ips[clientIp] = teamId;
     data.lastUpdated = new Date().toISOString();
 
-    // Save to file
+    // Save to storage
     await writeVotesData(data);
 
     // Return updated rankings
-    const rankings = data.teams
-      .map((t: any) => ({
+    const rankings = TEAMS
+      .map((t) => ({
         ...t,
         votes: data.votes[t.id] || 0,
         percentage: ((data.votes[t.id] || 0) / ((Object.values(data.votes) as number[]).reduce((a: number, b: number) => a + b, 0) || 1)) * 100,
       }))
-      .sort((a: any, b: any) => b.votes - a.votes)
+      .sort((a, b) => b.votes - a.votes)
       .slice(0, 10);
 
     const totalVotes = (Object.values(data.votes) as number[]).reduce((a: number, b: number) => a + b, 0);
