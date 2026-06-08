@@ -1,0 +1,91 @@
+{
+  "votes": {
+    "argentina": 1
+  },
+  "ips": {
+    "::1": "argentina"
+  },
+  "teams": [
+    {
+      "id": "brazil",
+      "name": "Brazil",
+      "flag": "🇧🇷"
+    },
+    {
+      "id": "france",
+      "name": "France",
+      "flag": "🇫🇷"
+    },
+    {
+      "id": "argentina",
+      "name": "Argentina",
+      "flag": "🇦🇷"
+    },
+    {
+      "id": "england",
+      "name": "England",
+      "flag": "🏴󠁧󠁢󠁳󠁴󠁯"
+    },
+    {
+      "id": "spain",
+      "name": "Spain",
+      "flag": "🇪🇸"
+    },
+    {
+      "id": "germany",
+      "name": "Germany",
+      "flag": "🇩🇪"
+    },
+    {
+      "id": "portugal",
+      "name": "Portugal",
+      "flag": "🇵🇹"
+    },
+    {
+      "id": "netherlands",
+      "name": "Netherlands",
+      "flag": "🇳🇱"
+    },
+    {
+      "id": "italy",
+      "name": "Italy",
+      "flag": "🇮🇹"
+    },
+    {
+      "id": "belgium",
+      "name": "Belgium",
+      "flag": "🇧🇪"
+    },
+    {
+      "id": "croatia",
+      "name": "Croatia",
+      "flag": "🇭🇷"
+    },
+    {
+      "id": "uruguay",
+      "name": "Uruguay",
+      "flag": "🇺🇾"
+    },
+    {
+      "id": "usa",
+      "name": "USA",
+      "flag": "🇺🇸"
+    },
+    {
+      "id": "mexico",
+      "name": "Mexico",
+      "flag": "🇲🇽"
+    },
+    {
+      "id": "japan",
+      "name": "Japan",
+      "flag": "🇯🇵"
+    },
+    {
+      "id": "south_korea",
+      "name": "South Korea",
+      "flag": "🇰🇷"
+    }
+  ],
+  "lastUpdated": "2026-06-08T09:34:43.037Z"
+}
