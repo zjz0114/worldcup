@@ -75,7 +75,7 @@ export async function GET(request: NextRequest) {
         ...team,
         votes: data.votes[team.id] || 0,
         percentage: data.teams.length > 0
-          ? ((data.votes[team.id] || 0) / Object.values(data.votes).reduce((a: number, b: number) => a + b, 0) || 1) * 100
+          ? ((data.votes[team.id] || 0) / (Object.values(data.votes) as number[]).reduce((a: number, b: number) => a + b, 0) || 1) * 100
           : 0,
       }))
       .sort((a: any, b: any) => b.votes - a.votes)
@@ -152,7 +152,7 @@ export async function POST(request: NextRequest) {
       .map((t: any) => ({
         ...t,
         votes: data.votes[t.id] || 0,
-        percentage: ((data.votes[t.id] || 0) / (Object.values(data.votes).reduce((a: number, b: number) => a + b, 0) || 1)) * 100,
+        percentage: ((data.votes[t.id] || 0) / ((Object.values(data.votes) as number[]).reduce((a: number, b: number) => a + b, 0) || 1)) * 100,
       }))
       .sort((a: any, b: any) => b.votes - a.votes)
       .slice(0, 10);
