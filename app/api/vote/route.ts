@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { kv } from "@vercel/kv";
+import { promises as fs } from "fs";
+import path from "path";
+
+const DATA_FILE = path.join(process.cwd(), "data", "votes.json");
 
 // Teams data
 const TEAMS = [
@@ -21,36 +24,57 @@ const TEAMS = [
   { id: "south_korea", name: "South Korea", flag: "🇰🇷" },
 ];
 
-// KV keys
-const VOTES_KEY = "worldcup:votes";
-const IPS_KEY = "worldcup:ips";
-const LAST_UPDATED_KEY = "worldcup:lastUpdated";
+// In-memory storage (for Vercel production)
+let memoryStore: {
+  votes: Record<string, number>;
+  ips: Record<string, string>;
+  lastUpdated: string;
+} | null = null;
 
-// Helper function to read votes data from KV
+// Helper function to get storage
+function getStorage() {
+  if (memoryStore) {
+    return memoryStore;
+  }
+  memoryStore = {
+    votes: {},
+    ips: {},
+    lastUpdated: new Date().toISOString(),
+  };
+  return memoryStore;
+}
+
+// Helper function to read votes data
 async function readVotesData() {
+  // Use memory storage in production (Vercel)
+  if (process.env.NODE_ENV === "production") {
+    return getStorage();
+  }
+
+  // Use file system in development
   try {
-    // Get votes from KV
-    const votes = await kv.hgetall(VOTES_KEY) as Record<string, number> || {};
-
-    // Get IPs from KV
-    const ips = await kv.hgetall(IPS_KEY) as Record<string, string> || {};
-
-    // Get last updated timestamp
-    const lastUpdated = await kv.get(LAST_UPDATED_KEY) as string || new Date().toISOString();
-
-    return {
-      votes,
-      ips,
-      lastUpdated,
-    };
+    const data = await fs.readFile(DATA_FILE, "utf-8");
+    return JSON.parse(data);
   } catch (error) {
-    console.error("Error reading from KV:", error);
     return {
       votes: {},
       ips: {},
+      teams: TEAMS,
       lastUpdated: new Date().toISOString(),
     };
   }
+}
+
+// Helper function to write votes data
+async function writeVotesData(data: any) {
+  // Use memory storage in production (Vercel)
+  if (process.env.NODE_ENV === "production") {
+    memoryStore = data;
+    return;
+  }
+
+  // Use file system in development
+  await fs.writeFile(DATA_FILE, JSON.stringify(data, null, 2), "utf-8");
 }
 
 // Get client IP address
@@ -85,14 +109,14 @@ export async function GET(request: NextRequest) {
       .map((team) => ({
         ...team,
         votes: data.votes[team.id] || 0,
-        percentage: Object.values(data.votes).reduce((a: number, b: number) => a + b, 0) > 0
-          ? ((data.votes[team.id] || 0) / Object.values(data.votes).reduce((a: number, b: number) => a + b, 0)) * 100
+        percentage: data.teams?.length > 0
+          ? ((data.votes[team.id] || 0) / (Object.values(data.votes) as number[]).reduce((a: number, b: number) => a + b, 0) || 1) * 100
           : 0,
       }))
       .sort((a, b) => b.votes - a.votes)
       .slice(0, 10);
 
-    const totalVotes = Object.values(data.votes).reduce((a: number, b: number) => a + b, 0);
+    const totalVotes = (Object.values(data.votes) as number[]).reduce((a: number, b: number) => a + b, 0);
 
     return NextResponse.json({
       success: true,
@@ -145,37 +169,37 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Increment vote count for the team
-    await kv.hincrby(VOTES_KEY, teamId, 1);
+    // Record the vote
+    if (!data.votes[teamId]) {
+      data.votes[teamId] = 0;
+    }
+    data.votes[teamId]++;
 
     // Record that this IP has voted
-    await kv.hset(IPS_KEY, { [clientIp]: teamId });
+    data.ips[clientIp] = teamId;
+    data.lastUpdated = new Date().toISOString();
 
-    // Update last updated timestamp
-    const now = new Date().toISOString();
-    await kv.set(LAST_UPDATED_KEY, now);
+    // Save to storage
+    await writeVotesData(data);
 
     // Return updated rankings
-    const updatedVotes = await kv.hgetall(VOTES_KEY) as Record<string, number>;
     const rankings = TEAMS
       .map((t) => ({
         ...t,
-        votes: updatedVotes[t.id] || 0,
-        percentage: Object.values(updatedVotes).reduce((a: number, b: number) => a + b, 0) > 0
-          ? ((updatedVotes[t.id] || 0) / Object.values(updatedVotes).reduce((a: number, b: number) => a + b, 0)) * 100
-          : 0,
+        votes: data.votes[t.id] || 0,
+        percentage: ((data.votes[t.id] || 0) / ((Object.values(data.votes) as number[]).reduce((a: number, b: number) => a + b, 0) || 1)) * 100,
       }))
       .sort((a, b) => b.votes - a.votes)
       .slice(0, 10);
 
-    const totalVotes = Object.values(updatedVotes).reduce((a: number, b: number) => a + b, 0);
+    const totalVotes = (Object.values(data.votes) as number[]).reduce((a: number, b: number) => a + b, 0);
 
     return NextResponse.json({
       success: true,
       votedTeam: team,
       rankings,
       totalVotes,
-      lastUpdated: now,
+      lastUpdated: data.lastUpdated,
     });
   } catch (error) {
     console.error("Error submitting vote:", error);
