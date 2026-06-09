@@ -19,13 +19,8 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     const saved = localStorage.getItem('language') as Language;
     if (saved && translations[saved]) {
       setLanguageState(saved);
-    } else {
-      // Detect browser language
-      const browserLang = navigator.language.split('-')[0] as Language;
-      if (translations[browserLang]) {
-        setLanguageState(browserLang);
-      }
     }
+    // Default to English if no saved language
   }, []);
 
   const setLanguage = (lang: Language) => {
