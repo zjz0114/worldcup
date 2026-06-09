@@ -24,34 +24,8 @@ const TEAMS = [
   { id: "south_korea", name: "South Korea", flag: "🇰🇷" },
 ];
 
-// In-memory storage (for Vercel production)
-let memoryStore: {
-  votes: Record<string, number>;
-  ips: Record<string, string>;
-  lastUpdated: string;
-} | null = null;
-
-// Helper function to get storage
-function getStorage() {
-  if (memoryStore) {
-    return memoryStore;
-  }
-  memoryStore = {
-    votes: {},
-    ips: {},
-    lastUpdated: new Date().toISOString(),
-  };
-  return memoryStore;
-}
-
 // Helper function to read votes data
 async function readVotesData() {
-  // Use memory storage in production (Vercel)
-  if (process.env.NODE_ENV === "production") {
-    return getStorage();
-  }
-
-  // Use file system in development
   try {
     const data = await fs.readFile(DATA_FILE, "utf-8");
     return JSON.parse(data);
@@ -67,13 +41,15 @@ async function readVotesData() {
 
 // Helper function to write votes data
 async function writeVotesData(data: any) {
-  // Use memory storage in production (Vercel)
-  if (process.env.NODE_ENV === "production") {
-    memoryStore = data;
-    return;
+  const dataDir = path.dirname(DATA_FILE);
+
+  // Ensure data directory exists
+  try {
+    await fs.access(dataDir);
+  } catch {
+    await fs.mkdir(dataDir, { recursive: true });
   }
 
-  // Use file system in development
   await fs.writeFile(DATA_FILE, JSON.stringify(data, null, 2), "utf-8");
 }
 
