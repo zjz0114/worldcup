@@ -3,13 +3,14 @@ import { promises as fs } from "fs";
 import path from "path";
 
 const DATA_FILE = path.join(process.cwd(), "data", "votes.json");
+const DATA_DIR = path.dirname(DATA_FILE);
 
 // Teams data
 const TEAMS = [
   { id: "brazil", name: "Brazil", flag: "🇧🇷" },
   { id: "france", name: "France", flag: "🇫🇷" },
   { id: "argentina", name: "Argentina", flag: "🇦🇷" },
-  { id: "england", name: "England", flag: "🏴󠁧󠁢󠁳󠁿󠁯" },
+  { id: "england", name: "England", flag: "🏴󠁧󠁢󠁳󠁴󠁯" },
   { id: "spain", name: "Spain", flag: "🇪🇸" },
   { id: "germany", name: "Germany", flag: "🇩🇪" },
   { id: "portugal", name: "Portugal", flag: "🇵🇹" },
@@ -27,6 +28,13 @@ const TEAMS = [
 // Helper function to read votes data
 async function readVotesData() {
   try {
+    // Ensure data directory exists
+    await fs.access(DATA_DIR);
+  } catch {
+    await fs.mkdir(DATA_DIR, { recursive: true });
+  }
+
+  try {
     const data = await fs.readFile(DATA_FILE, "utf-8");
     return JSON.parse(data);
   } catch (error) {
@@ -41,15 +49,6 @@ async function readVotesData() {
 
 // Helper function to write votes data
 async function writeVotesData(data: any) {
-  const dataDir = path.dirname(DATA_FILE);
-
-  // Ensure data directory exists
-  try {
-    await fs.access(dataDir);
-  } catch {
-    await fs.mkdir(dataDir, { recursive: true });
-  }
-
   await fs.writeFile(DATA_FILE, JSON.stringify(data, null, 2), "utf-8");
 }
 

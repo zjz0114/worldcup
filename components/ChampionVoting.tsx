@@ -51,7 +51,12 @@ export default function ChampionVoting() {
 
   const fetchVoteData = async () => {
     try {
-      const res = await fetch("/api/vote");
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+      const res = await fetch("/api/vote", { signal: controller.signal });
+      clearTimeout(timeoutId);
+
       const data = await res.json();
       if (data.success) {
         setVoteData({
@@ -60,9 +65,17 @@ export default function ChampionVoting() {
           totalVotes: data.totalVotes,
         });
         setHasVoted(data.hasVoted);
+      } else {
+        throw new Error(data.error || "Failed to fetch vote data");
       }
     } catch (error) {
       console.error("Error fetching vote data:", error);
+      setVoteData({
+        hasVoted: false,
+        rankings: ALL_TEAMS.map((team) => ({ ...team, votes: 0, percentage: 0 })),
+        totalVotes: 0,
+      });
+      setHasVoted(false);
     }
   };
 
