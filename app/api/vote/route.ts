@@ -21,8 +21,8 @@ const TEAMS = [
 ];
 
 // In-memory storage
-let votes: Record<string, number> = {};
-let votedIps: Record<string, string> = {};
+const votes: Record<string, number> = {};
+const votedIps: Record<string, string> = {};
 
 // Get client IP address
 function getClientIp(request: NextRequest): string {
