@@ -41,4 +41,4 @@ export function useLanguage() {
   return context;
 }
 
-export { languages };
+export { languages, Language };
