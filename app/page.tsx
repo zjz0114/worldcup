@@ -92,7 +92,7 @@ export default function Home() {
 
         {/* Stats Banner */}
         <div className={`grid grid-cols-4 gap-3 sm:gap-6 mb-10 sm:mb-14 transition-all duration-1000 delay-200 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
-          {stats.map((stat, i) => (
+          {stats.map((stat) => (
             <div key={stat.value} className="text-center p-3 sm:p-5 bg-white/5 backdrop-blur border border-white/10 rounded-2xl hover:bg-white/10 transition-all hover:scale-105">
               <div className="text-2xl sm:text-3xl lg:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-br from-white to-white/60">{stat.value}</div>
               <div className="text-white/60 text-xs sm:text-sm mt-1">{stat.label}</div>

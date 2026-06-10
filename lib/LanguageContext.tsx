@@ -6,7 +6,7 @@ import { translations, Language, languages } from './translations';
 const LanguageContext = createContext<{
   language: Language;
   setLanguage: (lang: Language) => void;
-  t: any;
+  t: typeof translations.en;
 } | undefined>(undefined);
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {

@@ -32,7 +32,6 @@ const langToPath: Record<Language, string> = {
 
 export default function ImageCarousel() {
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [isPaused, setIsPaused] = useState(false);
   const { t, language } = useLanguage();
 
   const nextSlide = () => {
@@ -57,13 +56,11 @@ export default function ImageCarousel() {
   };
 
   useEffect(() => {
-    if (!isPaused) {
-      const interval = setInterval(() => {
-        nextSlide();
-      }, 5000);
-      return () => clearInterval(interval);
-    }
-  }, [isPaused]);
+    const interval = setInterval(() => {
+      nextSlide();
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <div className="relative w-full h-[200px] rounded-xl overflow-hidden group">

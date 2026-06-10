@@ -37,7 +37,7 @@ async function readVotesData() {
   try {
     const data = await fs.readFile(DATA_FILE, "utf-8");
     return JSON.parse(data);
-  } catch (error) {
+  } catch {
     return {
       votes: {},
       ips: {},
@@ -48,7 +48,7 @@ async function readVotesData() {
 }
 
 // Helper function to write votes data
-async function writeVotesData(data: any) {
+async function writeVotesData(data: VotesData) {
   await fs.writeFile(DATA_FILE, JSON.stringify(data, null, 2), "utf-8");
 }
 
