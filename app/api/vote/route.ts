@@ -5,6 +5,14 @@ import path from "path";
 const DATA_FILE = path.join(process.cwd(), "data", "votes.json");
 const DATA_DIR = path.dirname(DATA_FILE);
 
+// Type definitions
+interface VotesData {
+  votes: Record<string, number>;
+  ips: Record<string, { team: string; timestamp: string }>;
+  teams: typeof TEAMS;
+  lastUpdated: string;
+}
+
 // Teams data
 const TEAMS = [
   { id: "brazil", name: "Brazil", flag: "🇧🇷" },
