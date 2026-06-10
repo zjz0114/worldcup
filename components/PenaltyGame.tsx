@@ -14,6 +14,7 @@ export default function PenaltyGame() {
   const [result, setResult] = useState<"goal" | "saved" | "missed" | null>(null);
   const [keeperPos, setKeeperPos] = useState<Position>({ x: 50, y: 50 });
   const [ballPos, setBallPos] = useState<Position>({ x: 50, y: 85 });
+  const [targetPos, setTargetPos] = useState<Position>({ x: 50, y: 85 });
   const fieldRef = useRef<HTMLDivElement>(null);
 
   const MAX_ATTEMPTS = 5;
